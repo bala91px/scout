@@ -359,6 +359,239 @@
   .reveal { opacity: 0; transform: translateY(30px); transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
   .reveal.visible { opacity: 1; transform: translateY(0); }
 
+  /* === v0.10 PRO TIER UI ===================================================
+     Lock indicators, Pro pills, paywall + email modals, save/favorite hearts,
+     blur-overlay for the full platform comparison table.
+     All driven by Scout.isPro() — element visibility flips on body class
+     `body.is-pro` (set on init + on toggle).
+     ========================================================================= */
+
+  /* --- Pro pill + lock icon ------------------------------------------------ */
+  .pro-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 100px;
+    background: var(--yellow); color: var(--black);
+    font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+    line-height: 1.4; vertical-align: middle;
+  }
+  .pro-pill svg { width: 10px; height: 10px; }
+  .lock-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 4px;
+    background: rgba(255,214,10,0.14); color: var(--yellow);
+    flex-shrink: 0; vertical-align: middle;
+  }
+  .lock-icon svg { width: 11px; height: 11px; }
+  /* Hide all .pro-only-show indicators when Pro — show otherwise */
+  body.is-pro .pro-only-show { display: none !important; }
+  /* Hide all .free-only-show indicators when Pro */
+  body.is-pro .free-only-show { display: none !important; }
+  /* Show .pro-only-content when Pro, hide when free */
+  .pro-only-content { display: none; }
+  body.is-pro .pro-only-content { display: block; }
+  body.is-pro .pro-only-content.inline { display: inline; }
+  body.is-pro .pro-only-content.flex { display: flex; }
+
+  /* --- Save / favorite heart ---------------------------------------------- */
+  .fav-btn {
+    background: rgba(255,255,255,0.04); border: 1px solid var(--gray-800);
+    width: 36px; height: 36px; border-radius: 100px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--gray-400); cursor: pointer; transition: all 0.18s;
+    flex-shrink: 0; padding: 0;
+  }
+  .fav-btn:hover { border-color: var(--yellow); color: var(--yellow); transform: scale(1.05); }
+  .fav-btn.is-fav { color: var(--yellow); border-color: var(--yellow); background: rgba(255,214,10,0.08); }
+  .fav-btn.is-fav svg { fill: currentColor; }
+  .fav-btn svg { width: 16px; height: 16px; }
+  .fav-btn .fav-lock { position: absolute; }
+  .bp-list-card { position: relative; }
+  .bp-list-card .fav-btn { position: absolute; top: 16px; right: 16px; z-index: 2; width: 32px; height: 32px; }
+  .bp-detail-fav-row { display: flex; align-items: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+
+  /* --- AI dev support button ---------------------------------------------- */
+  .ai-support-btn {
+    width: 100%; padding: 12px 16px; border-radius: var(--radius-sm);
+    background: rgba(255,214,10,0.08); border: 1px solid rgba(255,214,10,0.2);
+    color: var(--yellow); font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 16px;
+  }
+  .ai-support-btn:hover { background: rgba(255,214,10,0.14); border-color: var(--yellow); }
+  .ai-support-btn.is-locked { color: var(--gray-400); background: var(--gray-900); border-color: var(--gray-800); cursor: pointer; }
+  .ai-support-btn.is-locked:hover { border-color: var(--yellow); }
+
+  /* --- PDF download counter pill ------------------------------------------ */
+  .pdf-count-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(0,0,0,0.18); color: var(--black);
+    padding: 1px 8px; border-radius: 100px;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.02em;
+    margin-left: 6px;
+  }
+
+  /* --- Modal shell -------------------------------------------------------- */
+  .scout-modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.78);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    z-index: 2000; display: none; align-items: center; justify-content: center;
+    padding: 20px; animation: fadeIn 0.2s ease;
+  }
+  .scout-modal-backdrop.open { display: flex; }
+  .scout-modal {
+    background: var(--gray-900); border: 1px solid var(--gray-800);
+    border-radius: var(--radius); padding: 32px; max-width: 460px; width: 100%;
+    position: relative; box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    animation: modalUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: calc(100vh - 40px); overflow-y: auto;
+  }
+  .scout-modal-close {
+    position: absolute; top: 14px; right: 14px;
+    background: none; border: none; color: var(--gray-400);
+    width: 32px; height: 32px; border-radius: 100px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: inherit; transition: all 0.15s;
+  }
+  .scout-modal-close:hover { background: var(--gray-800); color: var(--white); }
+  .scout-modal-icon {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: rgba(255,214,10,0.12); color: var(--yellow);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px;
+  }
+  .scout-modal-icon svg { width: 28px; height: 28px; }
+  .scout-modal h3 {
+    font-size: 22px; font-weight: 800; letter-spacing: -0.02em;
+    margin-bottom: 8px; line-height: 1.2;
+  }
+  .scout-modal p {
+    font-size: 14px; color: var(--gray-400); line-height: 1.6; margin-bottom: 20px;
+  }
+  .scout-modal-input {
+    width: 100%; background: var(--black-card); border: 1px solid var(--gray-700);
+    color: var(--white); padding: 12px 14px; border-radius: var(--radius-sm);
+    font-size: 15px; font-family: inherit; outline: none; transition: border 0.18s;
+    margin-bottom: 14px;
+  }
+  .scout-modal-input:focus { border-color: var(--yellow); }
+  .scout-modal-actions {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .scout-modal-btn {
+    width: 100%; padding: 13px 18px; border-radius: var(--radius-sm);
+    border: none; font-size: 15px; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: all 0.18s;
+  }
+  .scout-modal-btn-primary { background: var(--yellow); color: var(--black); }
+  .scout-modal-btn-primary:hover { background: var(--yellow-hover); transform: translateY(-1px); }
+  .scout-modal-btn-secondary {
+    background: transparent; color: var(--gray-300); border: 1px solid var(--gray-700);
+  }
+  .scout-modal-btn-secondary:hover { border-color: var(--gray-600); color: var(--white); }
+  .scout-modal-link {
+    background: none; border: none; color: var(--gray-500); font-size: 13px;
+    text-decoration: underline; cursor: pointer; font-family: inherit;
+    align-self: center; margin-top: 4px;
+  }
+  .scout-modal-link:hover { color: var(--gray-300); }
+  .scout-modal-note { font-size: 12px; color: var(--gray-600); margin-top: 14px; text-align: center; }
+
+  /* --- Toast -------------------------------------------------------------- */
+  .scout-toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--gray-900); border: 1px solid var(--gray-700);
+    color: var(--white); padding: 14px 22px; border-radius: 100px;
+    font-size: 14px; font-weight: 600; z-index: 2100;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.6); opacity: 0;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;
+    max-width: calc(100vw - 32px);
+  }
+  .scout-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .scout-toast.success { border-color: rgba(52,211,153,0.4); }
+  .scout-toast .toast-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green); margin-right: 8px; vertical-align: middle;
+  }
+
+  /* --- Compare table tiered layout --------------------------------------- */
+  .compare-summary-row {
+    background: var(--gray-900); border: 1px solid var(--gray-800);
+    border-radius: var(--radius); padding: 28px;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .compare-summary-text { flex: 1 1 280px; min-width: 0; }
+  .compare-summary-text .compare-summary-title {
+    font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--white);
+  }
+  .compare-summary-text .compare-summary-sub {
+    font-size: 14px; color: var(--gray-400); line-height: 1.5;
+  }
+  .compare-summary-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--yellow); color: var(--black); border: none;
+    padding: 12px 22px; border-radius: 100px; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: all 0.18s; text-decoration: none;
+    flex-shrink: 0;
+  }
+  .compare-summary-cta:hover { background: var(--yellow-hover); transform: translateY(-1px); }
+  .compare-summary-cta svg { width: 14px; height: 14px; }
+
+  .compare-full-wrap { position: relative; }
+  .compare-full-wrap .compare-table-wrap { position: relative; }
+  .compare-locked-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(20,20,20,0) 0%, rgba(20,20,20,0.6) 25%, rgba(20,20,20,0.95) 60%);
+    backdrop-filter: blur(2.5px); -webkit-backdrop-filter: blur(2.5px);
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    padding: 40px 24px; pointer-events: auto; border-radius: var(--radius);
+    z-index: 5;
+  }
+  .compare-locked-card {
+    background: var(--gray-900); border: 1px solid rgba(255,214,10,0.3);
+    border-radius: var(--radius); padding: 24px 28px; max-width: 420px;
+    text-align: center; box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  }
+  .compare-locked-card h4 {
+    font-size: 18px; font-weight: 800; margin-bottom: 8px;
+    display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+  }
+  .compare-locked-card p { font-size: 13px; color: var(--gray-400); margin-bottom: 16px; line-height: 1.5; }
+  .compare-locked-card .compare-locked-btn {
+    background: var(--yellow); color: var(--black); border: none;
+    padding: 11px 24px; border-radius: 100px; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: all 0.18s; text-decoration: none;
+    display: inline-block;
+  }
+  .compare-locked-card .compare-locked-btn:hover { background: var(--yellow-hover); transform: translateY(-1px); }
+
+  /* Full table wider columns + dense rows for the Kevin data */
+  .compare-table.full td.dim-name { font-weight: 700; color: var(--white); white-space: nowrap; }
+  .compare-table.full td { vertical-align: top; line-height: 1.5; }
+  .compare-table.full .warn { color: var(--red); font-weight: 600; }
+  .compare-table.full .ok { color: var(--green); font-weight: 600; }
+  .compare-table-foot {
+    text-align: center; margin-top: 18px; font-size: 13px; color: var(--gray-600);
+  }
+  .compare-table-foot strong { color: var(--gray-400); }
+
+  /* --- Pro features list extras (price card) ------------------------------ */
+  .price-features li.muted { color: var(--gray-500); }
+  .price-features li.muted .icon { color: var(--gray-600); }
+  .price-features li .feat-note { font-size: 12px; color: var(--gray-600); margin-left: 4px; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes modalUp { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+  @media (max-width: 480px) {
+    .scout-modal { padding: 24px 20px; border-radius: var(--radius); }
+    .compare-summary-row { padding: 20px; flex-direction: column; align-items: flex-start; gap: 16px; }
+    .compare-summary-cta { width: 100%; justify-content: center; }
+    .compare-locked-card { padding: 20px 18px; }
+    .compare-locked-overlay { padding: 24px 14px; }
+  }
+
   @media (max-width: 768px) {
     .nav-cta { display: none; }
     .nav-links { display: none; position: absolute; top: 72px; left: 0; right: 0; flex-direction: column; background: rgba(10,10,10,0.95); backdrop-filter: blur(20px); padding: 16px 24px; gap: 8px; border-bottom: 1px solid var(--gray-800); }
@@ -525,20 +758,26 @@
 
 <section class="comparison-section" id="compare">
   <div class="container">
-    <div class="reveal"><div class="section-label">Platform Comparison</div><h2 class="section-title">Honest costs. No sponsored rankings.</h2><p class="section-subtitle">What platforms actually charge when you're building something real.</p></div>
-    <div class="compare-table-wrap reveal">
-      <table class="compare-table">
-        <thead><tr><th>Platform</th><th>Headline Price</th><th>Real Cost (Serious Build)</th><th>India Card Works?</th><th class="scout-col">Scout Alternative</th></tr></thead>
-        <tbody>
-          <tr><td>Lovable</td><td>$25/mo</td><td>$200&ndash;500/mo</td><td><span class="tag-paid">Often fails</span></td><td class="scout-col"><span class="tag-free">&#8377;0</span> pipeline</td></tr>
-          <tr><td>Cursor</td><td>$20/mo</td><td>$20&ndash;500/mo *</td><td><span class="tag-paid">CC required</span></td><td class="scout-col"><span class="tag-free">&#8377;0</span> pipeline</td></tr>
-          <tr><td>Bolt</td><td>Free tier</td><td>Tokens burn on errors</td><td><span class="tag-free">Yes</span></td><td class="scout-col"><span class="tag-free">&#8377;0</span> pipeline</td></tr>
-          <tr><td>Replit</td><td>Free tier</td><td>&#8377;1,800/mo after limit</td><td><span class="tag-paid">Often fails</span></td><td class="scout-col"><span class="tag-free">&#8377;0</span> pipeline</td></tr>
-          <tr><td>GitHub Copilot Pro+</td><td>&#8377;390/mo</td><td>&#8377;390/mo</td><td><span class="tag-free">Yes</span></td><td class="scout-col">Good for IDE. Not for full builds.</td></tr>
-        </tbody>
-      </table>
+    <div class="reveal">
+      <div class="section-label">Platform Comparison</div>
+      <h2 class="section-title">Honest costs. No sponsored rankings.</h2>
+      <p class="section-subtitle">What platforms actually charge when you're building something real.</p>
     </div>
-    <p style="text-align:center;margin-top:20px;font-size:12px;color:var(--gray-600);">* Cursor pricing jumped $28 to $500 in 3 days (2025). Prices verified May 2026.</p>
+
+    <!-- Free-tier summary row (visible only when not Pro) -->
+    <div class="compare-summary-row reveal free-only-show" id="compareSummaryRow">
+      <div class="compare-summary-text">
+        <div class="compare-summary-title">All 5 platforms compared <span class="lock-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span></div>
+        <div class="compare-summary-sub">Bolt &middot; Lovable &middot; Cursor &middot; v0 &middot; Replit Agent. See the full INR breakdown, month-1 reality, India payment friction, and lock-in risk with Pro.</div>
+      </div>
+      <button class="compare-summary-cta" onclick="Scout.openWaitlist('compare-summary-cta')">
+        Unlock with Pro
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <!-- Full Pro table (rendered by JS into #compareFullMount on init/state change) -->
+    <div class="compare-full-wrap reveal" id="compareFullMount"></div>
   </div>
 </section>
 
@@ -565,13 +804,53 @@
 
 <section class="pricing-section section" id="pricing">
   <div class="container">
-    <div class="reveal"><div class="section-label">Pricing</div><h2 class="section-title">Less than a Jio recharge.</h2><p class="section-subtitle">Scout's free tier is genuinely useful. Pro is for builders who want more.</p></div>
+    <div class="reveal"><div class="section-label">Pricing</div><h2 class="section-title">Less than a Jio recharge.</h2><p class="section-subtitle">Free gives you one full answer. Pro compounds across every build. Enterprise is bespoke.</p></div>
     <div class="pricing-grid">
-      <div class="price-card reveal"><div class="price-tier">Free</div><div class="price-amount">&#8377;0<span class="period"> / forever</span></div><p class="price-desc">Browse, search, and download blueprints. No sign-up required.</p><ul class="price-features"><li><span class="icon">&#10003;</span> Category browsing</li><li><span class="icon">&#10003;</span> Search blueprints</li><li><span class="icon">&#10003;</span> View pipeline, tools, costs</li><li><span class="icon">&#10003;</span> Download Plan (PDF)</li><li><span class="icon">&#10003;</span> No account needed</li></ul><a class="price-btn price-btn-outline" onclick="router.go('home'); setTimeout(()=>document.getElementById('categories')?.scrollIntoView({behavior:'smooth'}),100)" style="cursor:pointer">Start Free</a></div>
-      <div class="price-card featured reveal"><div class="price-tier">Pro</div><div class="price-amount"><span class="currency">&#8377;</span>99<span class="period"> / month</span></div><p class="price-desc">Full library, platform comparison, AI dev support, and saved blueprints.</p><ul class="price-features"><li><span class="icon">&#10003;</span> Everything in Free</li><li><span class="icon">&#10003;</span> Full blueprint library</li><li><span class="icon">&#10003;</span> Platform comparison (real costs)</li><li><span class="icon">&#10003;</span> AI dev support &mdash; stuck? Ask Scout</li><li><span class="icon">&#10003;</span> Saved blueprints &amp; build history</li><li><span class="icon">&#10003;</span> UPI payment &mdash; cancel anytime</li></ul><a class="price-btn price-btn-primary" href="mailto:hello@91pixels.com?subject=Scout%20Pro%20-%20Early%20Access&body=I%27d%20like%20to%20be%20notified%20when%20Scout%20Pro%20launches.">Get Pro &mdash; &#8377;99/month</a></div>
-      <div class="price-card reveal"><div class="price-tier">Enterprise</div><div class="price-amount">Custom</div><p class="price-desc">Custom AI pipeline architecture built for your business. INR pricing.</p><ul class="price-features"><li><span class="icon">&#10003;</span> Custom pipeline architecture</li><li><span class="icon">&#10003;</span> Bespoke AI build</li><li><span class="icon">&#10003;</span> Dedicated Scout team</li><li><span class="icon">&#10003;</span> Custom scoping &amp; INR pricing</li><li><span class="icon">&#10003;</span> Priority support</li></ul><a class="price-btn price-btn-outline" href="mailto:hello@91pixels.com?subject=Scout%20Enterprise%20-%20Custom%20Pipeline">Contact Us</a></div>
+      <div class="price-card reveal">
+        <div class="price-tier">Free</div>
+        <div class="price-amount">&#8377;0<span class="period"> / forever</span></div>
+        <p class="price-desc">Browse, search, and download blueprints. No sign-up required.</p>
+        <ul class="price-features">
+          <li><span class="icon">&#10003;</span> All blueprints &mdash; full pipeline, tools, code</li>
+          <li><span class="icon">&#10003;</span> Fuzzy search + tag-aware ranking</li>
+          <li><span class="icon">&#10003;</span> &ldquo;Last verified&rdquo; date on every blueprint</li>
+          <li><span class="icon">&#10003;</span> 3 PDF downloads / day</li>
+          <li><span class="icon">&#10003;</span> Platform comparison &mdash; summary row</li>
+          <li><span class="icon">&#10003;</span> No account needed</li>
+        </ul>
+        <a class="price-btn price-btn-outline" onclick="router.go('home'); setTimeout(()=>document.getElementById('categories')?.scrollIntoView({behavior:'smooth'}),100)" style="cursor:pointer">Start Free</a>
+      </div>
+      <div class="price-card featured reveal">
+        <div class="price-tier">Pro</div>
+        <div class="price-amount"><span class="currency">&#8377;</span>99<span class="period"> / month</span></div>
+        <p class="price-desc">Compounding value across every build &mdash; saved state, ongoing support, full comparison data.</p>
+        <ul class="price-features">
+          <li><span class="icon">&#10003;</span> Everything in Free</li>
+          <li><span class="icon">&#10003;</span> Unlimited PDF downloads</li>
+          <li><span class="icon">&#10003;</span> Save / favorite blueprints + notes</li>
+          <li><span class="icon">&#10003;</span> Full platform comparison (real INR breakdown + month-1 reality)</li>
+          <li><span class="icon">&#10003;</span> AI dev support (async, 24h response)</li>
+          <li><span class="icon">&#10003;</span> Email alerts when a blueprint drifts &gt; 90 days</li>
+          <li class="muted"><span class="icon">&#10003;</span> Quarterly verified-cost benchmarks <span class="feat-note">(Day 60 launch)</span></li>
+        </ul>
+        <button class="price-btn price-btn-primary" onclick="Scout.openWaitlist('pricing-pro-cta')">Join Waitlist</button>
+        <p style="font-size:11px;color:var(--gray-600);margin-top:10px;text-align:center;">UPI payments at launch. ₹99/month, cancel anytime.</p>
+      </div>
+      <div class="price-card reveal">
+        <div class="price-tier">Enterprise</div>
+        <div class="price-amount">Custom</div>
+        <p class="price-desc">Bespoke AI pipeline architected and built for one client. Custom scoping. INR pricing.</p>
+        <ul class="price-features">
+          <li><span class="icon">&#10003;</span> Everything in Pro</li>
+          <li><span class="icon">&#10003;</span> Custom pipeline build</li>
+          <li><span class="icon">&#10003;</span> Contracted ongoing support + SLA</li>
+          <li><span class="icon">&#10003;</span> Dedicated Scout team</li>
+          <li><span class="icon">&#10003;</span> Custom scoping &amp; INR pricing</li>
+        </ul>
+        <a class="price-btn price-btn-outline" href="mailto:hello@91pixels.com?subject=Scout%20Enterprise%20-%20Custom%20Pipeline">Contact Us</a>
+      </div>
     </div>
-    <p class="price-anchor reveal">Lovable costs <strong>&#8377;2,350/month</strong>. Scout Pro costs <strong>&#8377;99</strong>. That's less than your monthly data plan.</p>
+    <p class="price-anchor reveal">Lovable Pro costs <strong>&#8377;2,460/month</strong>. Scout Pro costs <strong>&#8377;99</strong>. That's <strong>25&times; cheaper</strong>.</p>
   </div>
 </section>
 
@@ -590,6 +869,10 @@
 <!-- APP VIEW (category / blueprint / search results) -->
 <div class="app-view" id="appView"></div>
 
+<!-- v0.10 MODALS + TOAST (single container, content swapped by JS) -->
+<div class="scout-modal-backdrop" id="scoutModalBackdrop" role="dialog" aria-modal="true" aria-hidden="true"></div>
+<div class="scout-toast" id="scoutToast" role="status" aria-live="polite"></div>
+
 <!-- FOOTER (always visible) -->
 <footer class="footer">
   <div class="container">
@@ -602,6 +885,502 @@
 </footer>
 
 <script>
+// ============================================================
+// SCOUT v0.10 — Pro tier UI shell
+// ============================================================
+// State stub (no real auth, no payments). Pro state is a simple flag in
+// localStorage. UI elements with .pro-only-content / .pro-only-show /
+// .free-only-show flip based on body.is-pro.
+//
+// DEV TOGGLE: type the keystroke sequence "PP" while holding Shift.
+// i.e. press Shift+P, then Shift+P again, within 1.5s. This toggles
+// `scout-pro` between '1' and absent. Production users won't discover
+// it accidentally — it's a deliberate two-keystroke chord. Reload after
+// toggle is performed automatically so all tier-gated UI updates.
+//
+// localStorage keys used by v0.10:
+//   scout-pro            — '1' when Pro, absent otherwise
+//   scout-pdf-count      — JSON {date: 'YYYY-MM-DD', count: n}
+//   scout-email-shown    — '1' once email modal has fired (one-time per browser)
+//   scout-email-waitlist — JSON array of emails captured locally
+//   scout-favorites      — JSON array of blueprint ids
+// ============================================================
+
+const Scout = (function () {
+  // ---- Pro state ----
+  function isPro() {
+    try { return localStorage.getItem('scout-pro') === '1'; }
+    catch (e) { return false; }
+  }
+  function setPro(on) {
+    try {
+      if (on) localStorage.setItem('scout-pro', '1');
+      else localStorage.removeItem('scout-pro');
+    } catch (e) {}
+    applyProState();
+  }
+  function applyProState() {
+    document.body.classList.toggle('is-pro', isPro());
+    // Re-render dynamic tier-aware fragments. The compare table + PDF button +
+    // hearts mount via Scout helpers, so a re-render reflects the new tier.
+    renderCompareTable();
+    renderPdfButton();
+    renderHeartButtons();
+    renderAiSupportButton();
+    // If we're on a SPA view (category/blueprint/search), re-render that view
+    // so heart/PDF/AI-support markup picks up the new tier without a full reload.
+    try {
+      if (location.hash && location.hash !== '#/' && typeof router !== 'undefined' && router.go) {
+        const m = location.hash.match(/^#\/(category|blueprint|search)\/(.+)$/);
+        if (m) {
+          try { router.go(m[1], decodeURIComponent(m[2]), true); } catch (e) {}
+        }
+      }
+    } catch (e) {}
+  }
+
+  // ---- PDF rate limit (3/day on free, unlimited on Pro) ----
+  // IST midnight reset: we use UTC+5:30 offset to compute "today in IST"
+  // so users in IST see counter reset at IST midnight as designed.
+  function todayIST() {
+    const now = new Date();
+    // IST is UTC+5:30 fixed (no DST in India)
+    const ist = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+    return ist.toISOString().slice(0, 10); // YYYY-MM-DD in IST calendar
+  }
+  function getPdfCount() {
+    try {
+      const raw = JSON.parse(localStorage.getItem('scout-pdf-count') || 'null');
+      const today = todayIST();
+      if (!raw || raw.date !== today) return { date: today, count: 0 };
+      return raw;
+    } catch (e) { return { date: todayIST(), count: 0 }; }
+  }
+  function setPdfCount(c) {
+    try { localStorage.setItem('scout-pdf-count', JSON.stringify(c)); } catch (e) {}
+  }
+  function incrementPdfCount() {
+    const c = getPdfCount();
+    c.count += 1;
+    setPdfCount(c);
+    return c.count;
+  }
+  const FREE_PDF_LIMIT = 3;
+
+  // ---- Favorites ----
+  function getFavorites() {
+    try { return JSON.parse(localStorage.getItem('scout-favorites') || '[]'); }
+    catch (e) { return []; }
+  }
+  function setFavorites(arr) {
+    try { localStorage.setItem('scout-favorites', JSON.stringify(arr)); } catch (e) {}
+  }
+  function isFavorite(id) { return getFavorites().includes(id); }
+  function toggleFavorite(id) {
+    const f = getFavorites();
+    const i = f.indexOf(id);
+    if (i >= 0) f.splice(i, 1); else f.push(id);
+    setFavorites(f);
+    renderHeartButtons();
+    return f.includes(id);
+  }
+
+  // ---- Email waitlist ----
+  function emailModalShown() {
+    try { return localStorage.getItem('scout-email-shown') === '1'; }
+    catch (e) { return false; }
+  }
+  function markEmailModalShown() {
+    try { localStorage.setItem('scout-email-shown', '1'); } catch (e) {}
+  }
+  function captureEmail(email) {
+    try {
+      const list = JSON.parse(localStorage.getItem('scout-email-waitlist') || '[]');
+      if (!list.includes(email)) list.push(email);
+      localStorage.setItem('scout-email-waitlist', JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  // ---- Modal helpers ----
+  function _backdrop() { return document.getElementById('scoutModalBackdrop'); }
+  function closeModal() {
+    const bd = _backdrop();
+    if (!bd) return;
+    bd.classList.remove('open');
+    bd.setAttribute('aria-hidden', 'true');
+    bd.innerHTML = '';
+  }
+  function _showModal(html) {
+    const bd = _backdrop();
+    if (!bd) return;
+    bd.innerHTML = html;
+    bd.classList.add('open');
+    bd.setAttribute('aria-hidden', 'false');
+    // Close on backdrop click
+    bd.onclick = (e) => { if (e.target === bd) closeModal(); };
+    // Close on Escape
+    document.addEventListener('keydown', _escClose, { once: true });
+  }
+  function _escClose(e) {
+    if (e.key === 'Escape') closeModal();
+    else document.addEventListener('keydown', _escClose, { once: true });
+  }
+
+  // ---- Modal: paywall (PDF rate limit reached) ----
+  function openPdfPaywall() {
+    const used = getPdfCount().count;
+    _showModal(
+      '<div class="scout-modal">' +
+        '<button class="scout-modal-close" onclick="Scout.closeModal()" aria-label="Close">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+        '</button>' +
+        '<div class="scout-modal-icon">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' +
+        '</div>' +
+        '<h3>Daily download limit reached</h3>' +
+        '<p>You’ve used ' + used + ' of ' + FREE_PDF_LIMIT + ' free downloads today. Upgrade to Pro for unlimited downloads, saved blueprints, full platform comparison, and AI dev support.</p>' +
+        '<div class="scout-modal-actions">' +
+          '<button class="scout-modal-btn scout-modal-btn-primary" onclick="Scout.openWaitlist(\'pdf-paywall\')">Join Pro Waitlist</button>' +
+          '<button class="scout-modal-btn scout-modal-btn-secondary" onclick="Scout.closeModal()">Maybe later</button>' +
+        '</div>' +
+        '<p class="scout-modal-note">Counter resets at midnight IST. Pro is &#8377;99/month with UPI.</p>' +
+      '</div>'
+    );
+  }
+
+  // ---- Modal: email capture ----
+  function openEmailCapture(reason) {
+    if (emailModalShown()) return; // never re-show
+    _showModal(
+      '<div class="scout-modal">' +
+        '<button class="scout-modal-close" onclick="Scout.dismissEmailCapture()" aria-label="Close">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+        '</button>' +
+        '<div class="scout-modal-icon">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>' +
+        '</div>' +
+        '<h3>Get notified when Pro launches</h3>' +
+        '<p>Pro launches with UPI payments. ₹99/month. No spam, one email at launch.</p>' +
+        '<form id="scoutEmailForm" onsubmit="Scout.submitEmailCapture(event)">' +
+          '<input type="email" class="scout-modal-input" id="scoutEmailInput" placeholder="you@example.com" required autocomplete="email">' +
+          '<div class="scout-modal-actions">' +
+            '<button type="submit" class="scout-modal-btn scout-modal-btn-primary">Notify me</button>' +
+            '<button type="button" class="scout-modal-link" onclick="Scout.dismissEmailCapture()">No thanks</button>' +
+          '</div>' +
+        '</form>' +
+      '</div>'
+    );
+    setTimeout(() => {
+      const input = document.getElementById('scoutEmailInput');
+      if (input) input.focus();
+    }, 50);
+  }
+  function dismissEmailCapture() {
+    markEmailModalShown();
+    closeModal();
+  }
+  function submitEmailCapture(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const input = document.getElementById('scoutEmailInput');
+    const email = input ? input.value.trim() : '';
+    if (!email || !/^.+@.+\..+$/.test(email)) {
+      if (input) input.focus();
+      return false;
+    }
+    captureEmail(email);
+    markEmailModalShown();
+    closeModal();
+    showToast('Got it — we’ll email you when Pro launches');
+    return false;
+  }
+
+  // ---- Modal: Pro upsell (favorites click on free) ----
+  function openProUpsell(reason) {
+    _showModal(
+      '<div class="scout-modal">' +
+        '<button class="scout-modal-close" onclick="Scout.closeModal()" aria-label="Close">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+        '</button>' +
+        '<div class="scout-modal-icon">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' +
+        '</div>' +
+        '<h3>Save blueprints with Pro</h3>' +
+        '<p>Pro lets you save and organize blueprints across builds. ₹99/month with UPI &mdash; cancel anytime. Plus unlimited PDF downloads, full platform comparison, and AI dev support.</p>' +
+        '<div class="scout-modal-actions">' +
+          '<button class="scout-modal-btn scout-modal-btn-primary" onclick="Scout.openWaitlist(\'fav-upsell\')">Join Pro Waitlist</button>' +
+          '<button class="scout-modal-btn scout-modal-btn-secondary" onclick="Scout.closeModal()">Maybe later</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  // ---- Waitlist entry: routes to email capture if not yet captured, else thanks toast ----
+  function openWaitlist(reason) {
+    if (emailModalShown()) {
+      // Already captured (or dismissed) — show thanks toast and noop
+      showToast('You’re on the list — we’ll email at launch');
+      closeModal();
+      return;
+    }
+    openEmailCapture(reason || 'waitlist');
+  }
+
+  // ---- Toast ----
+  let _toastTimer = null;
+  function showToast(msg) {
+    const t = document.getElementById('scoutToast');
+    if (!t) return;
+    t.innerHTML = '<span class="toast-dot"></span>' + msg;
+    t.classList.add('show', 'success');
+    if (_toastTimer) clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+  }
+
+  // ---- Compare table data + render ----
+  // Source: Kevin's AI App Builder Comparison (2026-05-09).
+  // Free shows summary only. Pro renders the full Kevin table inline.
+  const COMPARE_DATA = {
+    platforms: [
+      { id: 'bolt', name: 'Bolt.new' },
+      { id: 'lovable', name: 'Lovable' },
+      { id: 'cursor', name: 'Cursor' },
+      { id: 'v0', name: 'v0 (Vercel)' },
+      { id: 'replit', name: 'Replit Agent' }
+    ],
+    rows: [
+      { dim: 'Cheapest paid tier (USD)', cells: ['$25/mo Pro', '$25/mo Pro', '$20/mo Pro', '$20/mo Premium', '$25/mo Core'] },
+      { dim: 'Effective INR/mo (incl. 18% GST)', cells: ['~&#8377;2,460', '~&#8377;2,460', '~&#8377;1,966', '~&#8377;1,966', '~&#8377;2,460'] },
+      { dim: 'Real month-1 cost (typical)', cells: [
+        '<span class="warn">$25–$50</span> — token burn on debug loops',
+        '$25–$50 — credits drain on bug-fix loops',
+        '$20–$40 if disciplined; Auto mode helps',
+        '$20 sufficient for UI work; full apps push higher',
+        '<span class="warn">$50–$300+</span> — reports of $1,000/wk after Agent 3'
+      ]},
+      { dim: 'Underlying models', cells: [
+        'Claude Sonnet 4.6 (default)',
+        'GPT-4o on free, Sonnet 4.x on paid',
+        'All major models; Auto mode router',
+        'Composite: Sonnet 4 + autofix model',
+        'Multi-model under the hood'
+      ]},
+      { dim: 'Auth / DB / Backend', cells: [
+        'Bolt Database or Supabase',
+        '<span class="ok">Supabase first-class</span> (auth, RLS, edge fns)',
+        'BYO — you write the integration',
+        'BYO — Vercel + Neon/Supabase common',
+        'Built-in Postgres, auth, Replit DB'
+      ]},
+      { dim: 'Deploy target', cells: [
+        'Netlify (1-click), GitHub export',
+        'Lovable hosting, Netlify/Vercel via GitHub',
+        'None native — you deploy yourself',
+        'Vercel native (1-click)',
+        'Replit hosting only (autoscale/VMs $)'
+      ]},
+      { dim: 'Lock-in risk', cells: [
+        '<span class="ok">Low</span> — full GitHub export',
+        '<span class="ok">Low</span> — React/Tailwind/Supabase exportable',
+        '<span class="ok">None</span> — it’s just an IDE',
+        'Medium — Vercel-flavoured Next.js/shadcn',
+        '<span class="warn">Medium-High</span> — host+bill+dev all Replit'
+      ]},
+      { dim: 'Production-readiness', cells: [
+        'Prototype-grade. Manual hardening needed',
+        'Prototype-grade. Frontend mockup risk',
+        '<span class="ok">Production-grade</span> — humans review',
+        'UI/component-grade. App shells need backend work',
+        'Prototype-grade. Effort billing makes prod costly'
+      ]},
+      { dim: 'India payment (UPI)', cells: [
+        '<span class="warn">USD via Stripe; no UPI</span>',
+        '<span class="warn">USD via Stripe; no UPI</span> — reseller ~&#8377;8,999/yr',
+        '<span class="warn">USD only; UPI request open since 2024</span>',
+        '<span class="warn">USD only; tied to Vercel billing</span>',
+        '<span class="warn">USD via Stripe; no UPI</span>'
+      ]},
+      { dim: 'Honest success rate', cells: [
+        '<span class="warn">Fastest demo, worst at debug loops</span>',
+        'High for solo founders; struggles past MVP',
+        '<span class="ok">Highest</span> — used by serious engineers',
+        'High for landing/UI; weaker for full apps',
+        '<span class="warn">Polarizing</span> — billing complaints loud'
+      ]}
+    ]
+  };
+
+  function renderCompareTable() {
+    const mount = document.getElementById('compareFullMount');
+    if (!mount) return;
+    const headerCols = COMPARE_DATA.platforms.map(p => '<th>' + p.name + '</th>').join('');
+    const rowsHtml = COMPARE_DATA.rows.map(r => {
+      const cells = r.cells.map(c => '<td>' + c + '</td>').join('');
+      return '<tr><td class="dim-name">' + r.dim + '</td>' + cells + '</tr>';
+    }).join('');
+    const tableHtml =
+      '<div class="compare-table-wrap">' +
+        '<table class="compare-table full">' +
+          '<thead><tr><th>Dimension</th>' + headerCols + '</tr></thead>' +
+          '<tbody>' + rowsHtml + '</tbody>' +
+        '</table>' +
+      '</div>' +
+      '<p class="compare-table-foot">Source: Kevin’s research, May 2026. Verified across <strong>24 sources</strong>. ' +
+      '<strong>None of the five accept UPI</strong> in 2026 — Scout’s wedge.</p>';
+
+    if (isPro()) {
+      mount.innerHTML = tableHtml;
+    } else {
+      // Render the table behind a blur overlay with CTA
+      mount.innerHTML =
+        tableHtml +
+        '<div class="compare-locked-overlay">' +
+          '<div class="compare-locked-card">' +
+            '<h4>' +
+              '<span class="lock-icon" aria-hidden="true">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' +
+              '</span>' +
+              'Full comparison is a Pro feature' +
+            '</h4>' +
+            '<p>Real INR breakdown, month-1 reality, lock-in risk, and the truth about UPI on every platform.</p>' +
+            '<button class="compare-locked-btn" onclick="Scout.openWaitlist(\'compare-locked\')">Join Pro Waitlist</button>' +
+          '</div>' +
+        '</div>';
+      // Position the wrap relatively so overlay aligns
+      mount.querySelector('.compare-table-wrap').style.position = 'relative';
+    }
+  }
+
+  // ---- Tier-aware: render PDF download button text + counter ----
+  function pdfButtonHtml() {
+    const used = getPdfCount().count;
+    const remaining = Math.max(0, FREE_PDF_LIMIT - used);
+    const icon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+    if (isPro()) {
+      return icon + ' Download Plan (PDF)';
+    }
+    return icon + ' Download Plan <span class="pdf-count-pill">' + used + ' of ' + FREE_PDF_LIMIT + ' today</span>';
+  }
+  function renderPdfButton() {
+    document.querySelectorAll('.sidebar-download-btn').forEach(btn => {
+      if (btn.disabled) return; // mid-generation
+      btn.innerHTML = pdfButtonHtml();
+    });
+  }
+
+  // ---- Tier-aware: render heart buttons ----
+  function heartHtml(bpId) {
+    const fav = isPro() && isFavorite(bpId);
+    const lockedBadge = !isPro()
+      ? '<span class="lock-icon" style="margin-left:6px;" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>'
+      : '';
+    return '<button class="fav-btn ' + (fav ? 'is-fav' : '') + '" data-fav="' + bpId + '" onclick="event.stopPropagation();Scout.handleFav(\'' + bpId + '\')" aria-label="Save blueprint" title="' + (isPro() ? 'Save blueprint' : 'Pro: save blueprints') + '">' +
+      '<svg viewBox="0 0 24 24" fill="' + (fav ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' +
+    '</button>';
+  }
+  function renderHeartButtons() {
+    document.querySelectorAll('[data-fav]').forEach(btn => {
+      const bpId = btn.getAttribute('data-fav');
+      const fav = isPro() && isFavorite(bpId);
+      btn.classList.toggle('is-fav', fav);
+      const svg = btn.querySelector('svg');
+      if (svg) svg.setAttribute('fill', fav ? 'currentColor' : 'none');
+      btn.title = isPro() ? 'Save blueprint' : 'Pro: save blueprints';
+    });
+  }
+  function handleFav(bpId) {
+    if (!isPro()) {
+      // On free: trigger pro upsell modal (or email capture if not yet shown)
+      if (!emailModalShown()) {
+        openEmailCapture('fav-click');
+      } else {
+        openProUpsell('fav-click');
+      }
+      return;
+    }
+    const nowFav = toggleFavorite(bpId);
+    showToast(nowFav ? 'Saved to favorites' : 'Removed from favorites');
+  }
+
+  // ---- AI dev support button (Pro feature, blueprint detail) ----
+  function aiSupportButtonHtml(bpTitle) {
+    const safeTitle = encodeURIComponent(bpTitle || '');
+    if (isPro()) {
+      return '<button class="ai-support-btn" onclick="window.location.href=\'mailto:hello@91pixels.com?subject=Scout%20AI%20dev%20support%20-%20' + safeTitle + '\'">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' +
+        'Ask Scout (async 24h)' +
+      '</button>';
+    }
+    return '<button class="ai-support-btn is-locked" onclick="Scout.openWaitlist(\'ai-support\')">' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' +
+      'AI dev support — Pro feature' +
+    '</button>';
+  }
+  function renderAiSupportButton() {
+    document.querySelectorAll('[data-ai-support]').forEach(el => {
+      const title = el.getAttribute('data-ai-support');
+      el.innerHTML = aiSupportButtonHtml(title);
+    });
+  }
+
+  // ---- Email capture trigger A: 5min dwell ----
+  // We schedule once on init. If state changes (Pro on, or already shown,
+  // or browsing into a new view via SPA), the timer just no-ops on fire.
+  let _dwellArmed = false;
+  function armDwellTimer() {
+    if (_dwellArmed) return;
+    _dwellArmed = true;
+    const FIVE_MIN_MS = 5 * 60 * 1000;
+    setTimeout(() => {
+      if (!emailModalShown() && !isPro()) {
+        openEmailCapture('dwell-5min');
+      }
+    }, FIVE_MIN_MS);
+  }
+
+  // ---- Hidden dev toggle: Shift+P then Shift+P within 1.5s ----
+  let _toggleSeq = 0;
+  let _toggleTimer = null;
+  function _onKeydown(e) {
+    if (e.shiftKey && (e.key === 'P' || e.key === 'p')) {
+      _toggleSeq += 1;
+      if (_toggleTimer) clearTimeout(_toggleTimer);
+      if (_toggleSeq >= 2) {
+        _toggleSeq = 0;
+        const next = !isPro();
+        setPro(next);
+        showToast('Dev toggle: Pro state ' + (next ? 'ON' : 'OFF'));
+      } else {
+        _toggleTimer = setTimeout(() => { _toggleSeq = 0; }, 1500);
+      }
+    }
+  }
+
+  // ---- Init ----
+  function init() {
+    document.body.classList.toggle('is-pro', isPro());
+    window.addEventListener('keydown', _onKeydown);
+    armDwellTimer();
+    renderCompareTable();
+    renderPdfButton();
+    renderHeartButtons();
+    renderAiSupportButton();
+  }
+
+  // Public API
+  return {
+    isPro, setPro, applyProState,
+    getPdfCount, incrementPdfCount, FREE_PDF_LIMIT,
+    getFavorites, isFavorite, toggleFavorite,
+    captureEmail, emailModalShown, markEmailModalShown,
+    openPdfPaywall, openEmailCapture, openProUpsell, openWaitlist,
+    submitEmailCapture, dismissEmailCapture, closeModal,
+    showToast, handleFav,
+    pdfButtonHtml, heartHtml, aiSupportButtonHtml,
+    renderCompareTable, renderPdfButton, renderHeartButtons, renderAiSupportButton,
+    init
+  };
+})();
+
 // ============================================================
 // SCOUT DATA LAYER — 17 blueprints across 6 categories
 // ============================================================
@@ -845,6 +1624,7 @@ const router = {
         <div class="bp-list-grid">
           ${bps.map(bp => `
             <div class="bp-list-card" onclick="router.go('blueprint','${bp.id}')">
+              ${Scout.heartHtml(bp.id)}
               <div class="bp-list-card-top">
                 <h3>${bp.title}</h3>
                 <span class="badge badge-${bp.difficulty === 'Beginner' ? 'green' : bp.difficulty === 'Intermediate' ? 'blue' : 'purple'}">${bp.difficulty}</span>
@@ -899,6 +1679,10 @@ const router = {
                 <span>Last verified: ${formatVerifiedDate(bp.lastVerified)}</span>
               </div>
             ` : ''}
+            <div class="bp-detail-fav-row">
+              ${Scout.heartHtml(bp.id)}
+              <span style="font-size:13px;color:var(--gray-400);">Save this blueprint${Scout.isPro() ? '' : ' <span class="pro-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Pro</span>'}</span>
+            </div>
           </div>
 
           <div class="bp-detail-stats">
@@ -957,10 +1741,9 @@ const router = {
                 `).join('')}
               </div>
 
-              <button class="sidebar-download-btn" onclick="downloadPDF('${bp.id}')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Download Plan (PDF)
-              </button>
+              <button class="sidebar-download-btn" onclick="downloadPDF('${bp.id}')">${Scout.pdfButtonHtml()}</button>
+
+              <div data-ai-support="${esc(bp.title)}">${Scout.aiSupportButtonHtml(bp.title)}</div>
 
               <div class="sidebar-card sidebar-enterprise" style="margin-top:20px">
                 <div class="sidebar-card-title">Need This Built?</div>
@@ -1030,6 +1813,7 @@ const router = {
       const cat = CATEGORIES.find(c => c.id === bp.cat);
       return `
         <div class="bp-list-card" onclick="router.go('blueprint','${bp.id}')">
+          ${Scout.heartHtml(bp.id)}
           <div class="bp-list-card-top">
             <h3>${bp.title}</h3>
             <span class="badge badge-yellow">${cat.name}</span>
@@ -1218,6 +2002,15 @@ async function searchBlueprints(query) {
 async function downloadPDF(bpId) {
   const bp = BLUEPRINTS.find(b => b.id === bpId);
   if (!bp) return;
+
+  // v0.10: Rate-limit gate (free = 3/day). Pro = unlimited.
+  if (!Scout.isPro()) {
+    const cur = Scout.getPdfCount().count;
+    if (cur >= Scout.FREE_PDF_LIMIT) {
+      Scout.openPdfPaywall();
+      return;
+    }
+  }
 
   const pdfText = s => String(s ?? '')
     .replace(/₹/g, 'Rs.')
@@ -1464,9 +2257,21 @@ async function downloadPDF(bpId) {
 
   doc.save('Scout-' + bp.title.replace(/[^a-zA-Z0-9]/g, '-') + '.pdf');
 
+  // v0.10: Increment counter (free only) and re-render button to show new count
+  let newCount = 0;
+  if (!Scout.isPro()) {
+    newCount = Scout.incrementPdfCount();
+  }
+
   if (btn) {
-    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Plan (PDF)';
+    btn.innerHTML = Scout.pdfButtonHtml();
     btn.disabled = false;
+  }
+
+  // v0.10: Email capture trigger B — fire after 2nd successful free download
+  // (i.e. when the counter just ticked from 1 -> 2). One-time per browser.
+  if (!Scout.isPro() && newCount === 2 && !Scout.emailModalShown()) {
+    setTimeout(() => Scout.openEmailCapture('pdf-2nd'), 600);
   }
 }
 
@@ -1487,6 +2292,9 @@ function initReveals() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // v0.10: Initialize Scout Pro state, modals, dwell timer, dev toggle
+  Scout.init();
+
   // Nav scroll
   const nav = document.getElementById('nav');
   window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 40));
