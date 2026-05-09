@@ -902,8 +902,14 @@
 //   scout-pro            — '1' when Pro, absent otherwise
 //   scout-pdf-count      — JSON {date: 'YYYY-MM-DD', count: n}
 //   scout-email-shown    — '1' once email modal has fired (one-time per browser)
-//   scout-email-waitlist — JSON array of emails captured locally
+//   scout-email-waitlist — JSON array of emails captured locally (cache-of-record)
+//   scout-email-pending  — JSON array of {email, source, ts} pending backend upload
 //   scout-favorites      — JSON array of blueprint ids
+//
+// v0.11: email capture now POSTs to /api/waitlist (Cloudflare Pages Function
+// proxying to Loops.so). UX is optimistic — modal closes immediately, upload
+// runs in background, failures stay queued in localStorage and retry on next
+// page load via drainEmailQueue() in init().
 // ============================================================
 
 const Scout = (function () {
@@ -986,6 +992,9 @@ const Scout = (function () {
   }
 
   // ---- Email waitlist ----
+  const WAITLIST_ENDPOINT = '/api/waitlist';
+  const PENDING_KEY = 'scout-email-pending';
+
   function emailModalShown() {
     try { return localStorage.getItem('scout-email-shown') === '1'; }
     catch (e) { return false; }
@@ -999,6 +1008,67 @@ const Scout = (function () {
       if (!list.includes(email)) list.push(email);
       localStorage.setItem('scout-email-waitlist', JSON.stringify(list));
     } catch (e) {}
+  }
+
+  // Pending upload queue. Cap at 10 to bound localStorage growth if the
+  // backend stays offline (in practice we expect 0–1 entries per user).
+  function _readPending() {
+    try { return JSON.parse(localStorage.getItem(PENDING_KEY) || '[]'); }
+    catch (e) { return []; }
+  }
+  function _writePending(arr) {
+    try { localStorage.setItem(PENDING_KEY, JSON.stringify(arr)); }
+    catch (e) {}
+  }
+  function enqueueEmailUpload(email, source) {
+    const pending = _readPending();
+    const i = pending.findIndex(p => p && p.email === email);
+    const entry = { email, source: source || 'unknown', ts: Date.now() };
+    if (i >= 0) pending[i] = entry; else pending.push(entry);
+    _writePending(pending.slice(-10));
+  }
+  // Returns:
+  //   'ok'      - upload succeeded; remove from queue
+  //   'drop'    - upstream rejected the email itself as bad input; drop
+  //   'retry'   - transient or config issue (network, 5xx, 404 from missing
+  //               function, 429 rate limit); keep in queue for next load
+  async function _uploadEmail(email, source) {
+    let r;
+    try {
+      r = await fetch(WAITLIST_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source }),
+      });
+    } catch (e) { return 'retry'; }
+
+    // Only drop on responses that mean "the email itself is invalid" —
+    // anything else (404 if function not deployed, 5xx, network) is a
+    // transient/config issue and the email should retry on next load.
+    if (r.status === 400 || r.status === 422) return 'drop';
+    if (!r.ok) return 'retry';
+
+    // ok:true with queued:false means the function ran but LOOPS_API_KEY
+    // isn't set yet (deploy gap). Keep the email queued for retry.
+    const data = await r.json().catch(() => ({}));
+    return (data && data.queued !== false) ? 'ok' : 'retry';
+  }
+  let _draining = false;
+  async function drainEmailQueue() {
+    if (_draining) return;
+    _draining = true;
+    try {
+      const pending = _readPending();
+      if (!pending.length) return;
+      const remaining = [];
+      for (const item of pending) {
+        if (!item || !item.email) continue;
+        const result = await _uploadEmail(item.email, item.source);
+        if (result === 'retry') remaining.push(item);
+        // 'ok' and 'drop' both mean: don't keep in queue.
+      }
+      _writePending(remaining);
+    } finally { _draining = false; }
   }
 
   // ---- Modal helpers ----
@@ -1051,6 +1121,7 @@ const Scout = (function () {
   // ---- Modal: email capture ----
   function openEmailCapture(reason) {
     if (emailModalShown()) return; // never re-show
+    const safeReason = String(reason || 'unknown').replace(/[^a-z0-9-]/gi, '').slice(0, 32) || 'unknown';
     _showModal(
       '<div class="scout-modal">' +
         '<button class="scout-modal-close" onclick="Scout.dismissEmailCapture()" aria-label="Close">' +
@@ -1061,7 +1132,7 @@ const Scout = (function () {
         '</div>' +
         '<h3>Get notified when Pro launches</h3>' +
         '<p>Pro launches with UPI payments. ₹99/month. No spam, one email at launch.</p>' +
-        '<form id="scoutEmailForm" onsubmit="Scout.submitEmailCapture(event)">' +
+        '<form id="scoutEmailForm" data-reason="' + safeReason + '" onsubmit="Scout.submitEmailCapture(event)">' +
           '<input type="email" class="scout-modal-input" id="scoutEmailInput" placeholder="you@example.com" required autocomplete="email">' +
           '<div class="scout-modal-actions">' +
             '<button type="submit" class="scout-modal-btn scout-modal-btn-primary">Notify me</button>' +
@@ -1082,15 +1153,25 @@ const Scout = (function () {
   function submitEmailCapture(e) {
     if (e && e.preventDefault) e.preventDefault();
     const input = document.getElementById('scoutEmailInput');
-    const email = input ? input.value.trim() : '';
-    if (!email || !/^.+@.+\..+$/.test(email)) {
+    const form = document.getElementById('scoutEmailForm');
+    const email = input ? input.value.trim().toLowerCase() : '';
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       if (input) input.focus();
       return false;
     }
+    const reason = (form && form.getAttribute('data-reason')) || 'unknown';
+
+    // Cache locally (ground truth, never lost) and queue for backend upload.
     captureEmail(email);
+    enqueueEmailUpload(email, reason);
+
     markEmailModalShown();
     closeModal();
     showToast('Got it — we’ll email you when Pro launches');
+
+    // Fire upload in background. Failures stay in the pending queue and
+    // retry on the next page load via drainEmailQueue() in init().
+    drainEmailQueue();
     return false;
   }
 
@@ -1364,6 +1445,8 @@ const Scout = (function () {
     renderPdfButton();
     renderHeartButtons();
     renderAiSupportButton();
+    // Replay any emails captured offline / before the backend was wired.
+    drainEmailQueue();
   }
 
   // Public API
@@ -1372,6 +1455,7 @@ const Scout = (function () {
     getPdfCount, incrementPdfCount, FREE_PDF_LIMIT,
     getFavorites, isFavorite, toggleFavorite,
     captureEmail, emailModalShown, markEmailModalShown,
+    enqueueEmailUpload, drainEmailQueue,
     openPdfPaywall, openEmailCapture, openProUpsell, openWaitlist,
     submitEmailCapture, dismissEmailCapture, closeModal,
     showToast, handleFav,
